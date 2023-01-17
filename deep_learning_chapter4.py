@@ -41,5 +41,13 @@ history = model.fit(x_train_partial,
                     validation_data=(x_val, y_val))
 
 plt.figure()
-plt.plot(history.history['loss'], '-x')
+plt.plot(history.history['loss'], '-x', label='training loss')
+plt.plot(history.history['val_loss'], '-x', label='validation loss')
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.plot(history.history['accuracy'], '-x', label='training accuracy')
+plt.plot(history.history['val_accuracy'], '-x', label='validation accuracy')
+plt.legend()
 plt.show()
