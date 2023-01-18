@@ -51,3 +51,17 @@ plt.plot(history.history['accuracy'], '-x', label='training accuracy')
 plt.plot(history.history['val_accuracy'], '-x', label='validation accuracy')
 plt.legend()
 plt.show()
+
+model = keras.Sequential([
+    layers.Dense(16, activation='relu'),
+    layers.Dense(16, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
+model.compile(optimizer='rmsprop',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+model.fit(x_train,
+          y_train,
+          epochs=4,
+          batch_size=512)
+results = model.evaluate(x_test, y_test)
