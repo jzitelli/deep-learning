@@ -10,8 +10,9 @@ word_dict = {v: k for k, v in imdb.get_word_index().items()}
 def vectorize_sequences(sequences, dimension=10000):
     results = np.zeros((len(sequences), dimension))
     for i, sequence in enumerate(sequences):
-        for j in sequence:
-            results[i,j] = 1
+        results[i, np.array(sequence)] = 1
+        # for j in sequence:
+        #     results[i,j] = 1
     return results
 
 x_train = vectorize_sequences(train_data)
@@ -52,16 +53,16 @@ plt.plot(history.history['val_accuracy'], '-x', label='validation accuracy')
 plt.legend()
 plt.show()
 
-model = keras.Sequential([
-    layers.Dense(16, activation='relu'),
-    layers.Dense(16, activation='relu'),
-    layers.Dense(1, activation='sigmoid')
-])
-model.compile(optimizer='rmsprop',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
-model.fit(x_train,
-          y_train,
-          epochs=4,
-          batch_size=512)
-results = model.evaluate(x_test, y_test)
+# model = keras.Sequential([
+#     layers.Dense(16, activation='relu'),
+#     layers.Dense(16, activation='relu'),
+#     layers.Dense(1, activation='sigmoid')
+# ])
+# model.compile(optimizer='rmsprop',
+#               loss='binary_crossentropy',
+#               metrics=['accuracy'])
+# model.fit(x_train,
+#           y_train,
+#           epochs=4,
+#           batch_size=512)
+# results = model.evaluate(x_test, y_test)
