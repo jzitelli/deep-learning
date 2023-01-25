@@ -3,6 +3,7 @@ import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
 try:
@@ -35,13 +36,12 @@ td = np.vstack([
     train_data['ScreenPorch'].to_numpy('float32'),
     train_data['MiscVal'].to_numpy('float32'),
     train_data['TotRmsAbvGrd'].to_numpy('float32'),
-    # train_data['ScreenPorch'].to_numpy('float32'),
+    # train_data['BsmtUnfSF'].to_numpy('float32'),
+    # train_data['TotalBsmtSF'].to_numpy('float32'),
 ]).T.copy()
 
-mean = td.mean(axis=0)
-td -= mean
-std = td.std(axis=0)
-td /= std
+td -= td.mean(axis=0)
+td /= td.std(axis=0)
 
 train_labels = train_data['SalePrice'].to_numpy('float32')
 
@@ -52,10 +52,16 @@ model = keras.Sequential([
     layers.Dense(16, activation='relu'),
     layers.Dense(1)
 ])
+# model = keras.Sequential([
+#     layers.Dense(64, activation='relu'),
+#     layers.Dense(64, activation='relu'),
+#     layers.Dense(1)
+# ])
+
 model.compile(optimizer='rmsprop', loss='mse', metrics=['mae'])
 
-history = model.fit(td.T, train_labels,
-                    epochs=400, batch_size=256, validation_split=0.2)
+history = model.fit(td, train_labels,
+                    epochs=400, batch_size=256, validation_split=0.4)
 
 plt.plot(history.history['loss'], label='training loss')
 plt.plot(history.history['val_loss'], label='validation loss')
