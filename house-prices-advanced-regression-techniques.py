@@ -3,7 +3,7 @@ import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
-import seaborn as sns
+# import seaborn as sns
 import os
 
 try:
@@ -11,45 +11,26 @@ try:
 except:
     data_dir = 'house-prices-advanced-regression-techniques'
 train_data = pd.read_csv(os.path.join(data_dir, 'train.csv'))
+test_data = pd.read_csv(os.path.join(data_dir, 'test.csv'))
 
-td = np.vstack([
-    # train_data.LotFrontage.to_numpy('float32'),
-    train_data.LotArea.to_numpy('float32'),
-    train_data.OverallQual.to_numpy('float32'),
-    train_data.OverallCond.to_numpy('float32'),
-    train_data.YearBuilt.to_numpy('float32'),
-    train_data.YearRemodAdd.to_numpy('float32'),
-    train_data.TotalBsmtSF.to_numpy('float32'),
-    train_data['1stFlrSF'].to_numpy('float32'),
-    train_data['2ndFlrSF'].to_numpy('float32'),
-    train_data['LowQualFinSF'].to_numpy('float32'),
-    train_data['GrLivArea'].to_numpy('float32'),
-    # train_data['BsmtFullBath'].to_numpy('float32'),
-    # train_data['BsmtHalfBath'].to_numpy('float32'),
-    train_data['FullBath'].to_numpy('float32'),
-    train_data['HalfBath'].to_numpy('float32'),
-    train_data['BedroomAbvGr'].to_numpy('float32'),
-    train_data['WoodDeckSF'].to_numpy('float32'),
-    train_data['OpenPorchSF'].to_numpy('float32'),
-    train_data['EnclosedPorch'].to_numpy('float32'),
-    train_data['3SsnPorch'].to_numpy('float32'),
-    train_data['ScreenPorch'].to_numpy('float32'),
-    train_data['MiscVal'].to_numpy('float32'),
-    train_data['TotRmsAbvGrd'].to_numpy('float32'),
-    # train_data['BsmtUnfSF'].to_numpy('float32'),
-    # train_data['TotalBsmtSF'].to_numpy('float32'),
-]).T.copy()
+plt.hist(train_data.SalePrice, bins=50)
 
+def extract_features(data):
+    columns = ['LotArea', 'OverallQual', 'OverallCond', 'YearBuilt',
+               'YearRemodAdd', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'LowQualFinSF', 'GrLivArea', 'BsmtFullBath',
+               'BsmtHalfBath', 'FullBath', 'HalfBath', 'BedroomAbvGr', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
+               '3SsnPorch', 'ScreenPorch', 'MiscVal', 'TotRmsAbvGrd', 'BsmtUnfSF', 'TotalBsmtSF']
+    return np.vstack([data[col].to_numpy('float32') for col in columns]).T.copy()
+
+td = extract_features(train_data)
 td -= td.mean(axis=0)
 td /= td.std(axis=0)
-
-train_labels = train_data['SalePrice'].to_numpy('float32')
 
 model = keras.Sequential([
     layers.Dense(256, activation='relu'),
     layers.Dense(128, activation='relu'),
     layers.Dense(32, activation='relu'),
-    layers.Dense(16, activation='relu'),
+    # layers.Dense(16, activation='relu'),
     layers.Dense(1)
 ])
 # model = keras.Sequential([
@@ -60,9 +41,10 @@ model = keras.Sequential([
 
 model.compile(optimizer='rmsprop', loss='mse', metrics=['mae'])
 
-history = model.fit(td, train_labels,
+history = model.fit(td, train_data['SalePrice'].to_numpy('float32'),
                     epochs=400, batch_size=256, validation_split=0.4)
 
+plt.figure()
 plt.plot(history.history['loss'], label='training loss')
 plt.plot(history.history['val_loss'], label='validation loss')
 plt.legend()
@@ -71,3 +53,8 @@ plt.figure()
 plt.plot(history.history['mae'], label='training mae')
 plt.plot(history.history['val_mae'], label='validation mae')
 plt.legend()
+
+
+# td = extract_features(test_data)
+# td -= td.mean(axis=0)
+# td /= td.std(axis=0)
