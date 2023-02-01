@@ -3,7 +3,7 @@ import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
-# import seaborn as sns
+import seaborn as sns
 import os
 
 try:
@@ -16,15 +16,20 @@ test_data = pd.read_csv(os.path.join(data_dir, 'test.csv'))
 plt.hist(train_data.SalePrice, bins=50)
 
 def extract_features(data):
-    columns = ['LotArea', 'OverallQual', 'OverallCond', 'YearBuilt',
-               'YearRemodAdd', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'LowQualFinSF', 'GrLivArea', 'BsmtFullBath',
-               'BsmtHalfBath', 'FullBath', 'HalfBath', 'BedroomAbvGr', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
-               '3SsnPorch', 'ScreenPorch', 'MiscVal', 'TotRmsAbvGrd', 'BsmtUnfSF', 'TotalBsmtSF']
-    return np.vstack([data[col].to_numpy('float32') for col in columns]).T.copy()
+    columns = ['LotArea', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd',
+               #'TotalBsmtSF',
+               '1stFlrSF', '2ndFlrSF', 'LowQualFinSF', 'GrLivArea',
+               #'BsmtFullBath', 'BsmtHalfBath',
+               'FullBath', 'HalfBath', 'BedroomAbvGr', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
+               '3SsnPorch', 'ScreenPorch', 'MiscVal', 'TotRmsAbvGrd',
+               #'BsmtUnfSF', 'TotalBsmtSF'
+               ]
+    result = np.vstack([data[col].to_numpy('float32') for col in columns]).T.copy()
+    result -= result.mean(axis=0)
+    result /= result.std(axis=0)
+    return result
 
 td = extract_features(train_data)
-td -= td.mean(axis=0)
-td /= td.std(axis=0)
 
 model = keras.Sequential([
     layers.Dense(256, activation='relu'),
@@ -55,6 +60,11 @@ plt.plot(history.history['val_mae'], label='validation mae')
 plt.legend()
 
 
-# td = extract_features(test_data)
-# td -= td.mean(axis=0)
-# td /= td.std(axis=0)
+td = extract_features(test_data)
+predictions = model.predict(td)
+
+predictions = pd.DataFrame({'Id': test_data.Id,
+                            'SalePrice': predictions.flatten()})
+print(predictions)
+with open(os.path.join(data_dir, 'predictions.csv'), 'w') as f:
+    f.write(predictions.to_csv(index=False, lineterminator='\n'))
