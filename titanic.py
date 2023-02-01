@@ -17,7 +17,7 @@ def extract_features(data):
     columns = ['Pclass', 'SibSp', 'Parch']#, 'Fare']
     result = np.vstack([data[col].to_numpy('float32') for col in columns] +
                        [(data['Sex'] == 'male').to_numpy('float32'),
-                        pd.Categorical(data.Embarked).codes]).T.copy()
+                        pd.Categorical(data['Embarked']).codes]).T.copy()
     result -= result.mean(axis=0)
     result /= result.std(axis=0)
     return result
@@ -34,7 +34,7 @@ model = keras.Sequential([
 model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
 
 history = model.fit(td, train_data['Survived'].to_numpy('float32'),
-                    epochs=20, batch_size=64, validation_split=0.4)
+                    epochs=20, batch_size=128, validation_split=0.4)
 
 plt.figure()
 plt.plot(history.history['loss'], label='training loss')
@@ -49,4 +49,8 @@ plt.legend()
 td = extract_features(test_data)
 
 predictions = model.predict(td)
+predictions = pd.DataFrame({'PassengerId': test_data.PassengerId,
+                            'Survived': (predictions.flatten() >= 0.5).astype('int')})
 print(predictions)
+with open(os.path.join(data_dir, 'titanic_predictions.csv'), 'w') as f:
+    f.write(predictions.to_csv(index=False, lineterminator='\n'))
