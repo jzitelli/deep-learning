@@ -13,18 +13,21 @@ except:
 train_data = pd.read_csv(os.path.join(data_dir, 'train.csv'))
 test_data = pd.read_csv(os.path.join(data_dir, 'test.csv'))
 
-plt.hist(train_data.SalePrice, bins=50)
+#plt.hist(train_data.SalePrice, bins=50)
 
 def extract_features(data):
-    columns = ['LotArea', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd',
-               #'TotalBsmtSF',
+    columns = ['MSSubClass', 'LotArea', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd',
+               'TotalBsmtSF',
                '1stFlrSF', '2ndFlrSF', 'LowQualFinSF', 'GrLivArea',
-               #'BsmtFullBath', 'BsmtHalfBath',
+               'BsmtFullBath', 'BsmtHalfBath',
                'FullBath', 'HalfBath', 'BedroomAbvGr', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
                '3SsnPorch', 'ScreenPorch', 'MiscVal', 'TotRmsAbvGrd',
-               #'BsmtUnfSF', 'TotalBsmtSF'
+               'BsmtUnfSF', 'TotalBsmtSF'
                ]
-    result = np.vstack([data[col].to_numpy('float32') for col in columns]).T.copy()
+    cat_columns = ['MSZoning', 'HouseStyle', 'RoofStyle', 'RoofMatl', 'ExterQual', 'ExterCond', 'Foundation', 'Heating',
+                   'HeatingQC', 'CentralAir', 'KitchenQual', 'Functional', 'SaleType', 'SaleCondition']
+    result = np.vstack([data[col].fillna(0).to_numpy('float32') for col in columns] +
+                       [pd.Categorical(data[col]).codes for col in cat_columns]).T.copy()
     result -= result.mean(axis=0)
     result /= result.std(axis=0)
     return result
@@ -32,7 +35,7 @@ def extract_features(data):
 td = extract_features(train_data)
 
 model = keras.Sequential([
-    layers.Dense(256, activation='relu'),
+    layers.Dense(128, activation='relu'),
     layers.Dense(128, activation='relu'),
     layers.Dense(32, activation='relu'),
     # layers.Dense(16, activation='relu'),
@@ -44,7 +47,7 @@ model = keras.Sequential([
 #     layers.Dense(1)
 # ])
 
-model.compile(optimizer='rmsprop', loss='mse', metrics=['mae'])
+model.compile(optimizer='rmsprop', loss='mse', metrics=['mae', keras.metrics.RootMeanSquaredError()])
 
 history = model.fit(td, train_data['SalePrice'].to_numpy('float32'),
                     epochs=400, batch_size=256, validation_split=0.4)
@@ -54,9 +57,14 @@ plt.plot(history.history['loss'], label='training loss')
 plt.plot(history.history['val_loss'], label='validation loss')
 plt.legend()
 
+# plt.figure()
+# plt.plot(history.history['mae'], label='training mae')
+# plt.plot(history.history['val_mae'], label='validation mae')
+# plt.legend()
+
 plt.figure()
-plt.plot(history.history['mae'], label='training mae')
-plt.plot(history.history['val_mae'], label='validation mae')
+plt.plot(history.history['root_mean_squared_error'], label='training root_mean_squared_error')
+plt.plot(history.history['val_root_mean_squared_error'], label='validation root_mean_squared_error')
 plt.legend()
 
 
