@@ -68,3 +68,27 @@ outputs = layers.Dense(1, activation='sigmoid')(x)
 model = keras.Model(inputs, outputs)
 
 model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+
+from tensorflow.keras.utils import image_dataset_from_directory
+
+train_dataset = image_dataset_from_directory(new_base_dir / 'train',
+                                             image_size=(180,180),
+                                             batch_size=32)
+validation_dataset = image_dataset_from_directory(new_base_dir / 'validation',
+                                             image_size=(180,180),
+                                             batch_size=32)
+test_dataset = image_dataset_from_directory(new_base_dir / 'test',
+                                             image_size=(180,180),
+                                             batch_size=32)
+
+callbacks = [keras.callbacks.ModelCheckpoint(filepath='convnet_from_scratch.keras', save_best_only=True, monitor='val_loss')]
+history = model.fit(train_dataset, epochs=30, validation_data=validation_dataset, callbacks=callbacks)
+plt.figure()
+plt.plot(history.history['accuracy'], label='training accuracy')
+plt.plot(history.history['val_accuracy'], label='validation accuracy')
+plt.legend()
+
+plt.figure()
+plt.plot(history.history['loss'][1:], label='training loss')
+plt.plot(history.history['val_loss'][1:], label='validation loss')
+plt.legend()
