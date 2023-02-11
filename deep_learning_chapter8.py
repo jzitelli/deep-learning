@@ -52,8 +52,12 @@ def make_subset(subset_name, start_index, end_index):
 #
 # print(model.evaluate(test_images, test_labels))
 
+data_augmentation = keras.Sequential([layers.RandomFlip('horizontal'),
+                                      layers.RandomRotation(0.1),
+                                      layers.RandomZoom(0.2)])
 inputs = keras.Input(shape=(180,180,3))
-x = layers.Rescaling(1./255)(inputs)
+x = data_augmentation(inputs)
+x = layers.Rescaling(1./255)(x)
 x = layers.Conv2D(filters=32, kernel_size=3, activation='relu')(inputs)
 x = layers.MaxPooling2D(pool_size=2)(x)
 x = layers.Conv2D(filters=64, kernel_size=3, activation='relu')(x)
@@ -64,6 +68,7 @@ x = layers.Conv2D(filters=256, kernel_size=3, activation='relu')(x)
 x = layers.MaxPooling2D(pool_size=2)(x)
 x = layers.Conv2D(filters=256, kernel_size=3, activation='relu')(x)
 x = layers.Flatten()(x)
+x = layers.Dropout(0.5)(x)
 outputs = layers.Dense(1, activation='sigmoid')(x)
 model = keras.Model(inputs, outputs)
 
@@ -81,8 +86,10 @@ test_dataset = image_dataset_from_directory(new_base_dir / 'test',
                                              image_size=(180,180),
                                              batch_size=32)
 
-callbacks = [keras.callbacks.ModelCheckpoint(filepath='convnet_from_scratch.keras', save_best_only=True, monitor='val_loss')]
-history = model.fit(train_dataset, epochs=30, validation_data=validation_dataset, callbacks=callbacks)
+# callbacks = [keras.callbacks.ModelCheckpoint(filepath='convnet_from_scratch.keras', save_best_only=True, monitor='val_loss')]
+callbacks = [keras.callbacks.ModelCheckpoint(filepath='convnet_from_scratch_with_augmentation.keras', save_best_only=True, monitor='val_loss')]
+history = model.fit(train_dataset, epochs=100, validation_data=validation_dataset, callbacks=callbacks)
+
 plt.figure()
 plt.plot(history.history['accuracy'], label='training accuracy')
 plt.plot(history.history['val_accuracy'], label='validation accuracy')
@@ -92,3 +99,8 @@ plt.figure()
 plt.plot(history.history['loss'][1:], label='training loss')
 plt.plot(history.history['val_loss'][1:], label='validation loss')
 plt.legend()
+
+# test_model = keras.models.load_model('convnet_from_scratch.keras')
+test_model = keras.models.load_model('convnet_from_scratch_with_augmentation.keras')
+test_loss, test_acc = model.evaluate(test_dataset)
+print(f"test accuracy: {test_acc:.3f}")
