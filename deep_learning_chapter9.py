@@ -74,4 +74,14 @@ plt.plot(history.history['loss'], label='training loss')
 plt.plot(history.history['val_loss'], label='validation loss')
 plt.legend()
 
-# test_model = keras.models.load_model('oxford_segmentation.keras')
+test_model = keras.models.load_model('oxford_segmentation.keras')
+
+def compare_target(model, i):
+    plt.figure(); plt.title('image')
+    plt.imshow(val_input_imgs[i] / 255.0)
+    plt.figure(); plt.title('predicted')
+    plt.imshow((model.predict(val_input_imgs[i:i+1])[0]) * 2.0)
+    plt.figure(); plt.title('actual')
+    plt.imshow(val_targets[i] / 255.0)
+
+compare_target(test_model, 500)
