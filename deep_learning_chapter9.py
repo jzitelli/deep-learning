@@ -80,7 +80,8 @@ def compare_target(model, i):
     plt.figure(); plt.title('image')
     plt.imshow(val_input_imgs[i] / 255.0)
     plt.figure(); plt.title('predicted')
-    plt.imshow((model.predict(val_input_imgs[i:i+1])[0]) * 2.0)
+    #plt.imshow(model.predict(np.expand_dims(val_input_imgs[i], axis=0))[0] * 2.0)
+    plt.imshow(model.predict(val_input_imgs[i].reshape((1,) + img_size + (3,)))[0] * 2.0)
     plt.figure(); plt.title('actual')
     plt.imshow(val_targets[i] / 255.0)
 
