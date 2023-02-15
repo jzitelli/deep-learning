@@ -77,13 +77,13 @@ plt.legend()
 test_model = keras.models.load_model('oxford_segmentation.keras')
 
 def compare_target(model, i):
-    plt.figure(); plt.title('image')
-    plt.imshow(val_input_imgs[i] / 255.0)
     plt.figure(); plt.title('predicted')
     pred = model.predict(val_input_imgs[i:i + 1])[0]
     mask = np.argmax(pred, axis=-1)
     plt.imshow(mask * 127)
+    plt.imshow(val_input_imgs[i] / 255.0, alpha=0.6)
     plt.figure(); plt.title('actual')
     plt.imshow(val_targets[i] / 255.0)
+    plt.imshow(val_input_imgs[i] / 255.0, alpha=0.6)
 
 compare_target(test_model, 500)
