@@ -87,3 +87,20 @@ plt.legend()
 
 model = keras.models.load_model('jena_dense.keras')
 print(f'model.evaluate(test_dataset): {model.evaluate(test_dataset)}')
+
+plt.figure()
+plt.plot(history.history['mae'][1:], label='training MAE')
+plt.plot(history.history['val_mae'][1:], label='validation MAE')
+plt.legend()
+
+# LSTM model
+inputs = keras.Input(shape=(sequence_length, raw_data.shape[-1]))
+x = layers.LSTM(16)(inputs)
+outputs = layers.Dense(1)(x)
+model = keras.Model(inputs, outputs)
+model.compile(optimizer='rmsprop', loss='mse', metrics=['mae'])
+callbacks = [keras.callbacks.ModelCheckpoint('jena_lstm.keras', save_best_only=True)]
+history = model.fit(train_dataset, epochs=10, validation_data=val_dataset, callbacks=callbacks)
+
+model = keras.models.load_model('jena_lstm.keras')
+print(f'model.evaluate(test_dataset): {model.evaluate(test_dataset)}')
